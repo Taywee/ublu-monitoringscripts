@@ -1,0 +1,35 @@
+# Gets all messages waiting for a particular username, and prints them
+FUNC sysshep.alarm_msgw ( username password host qusername ) $[
+    LOCAL @as400
+    LOCAL @dpoint
+    LOCAL @list
+    LOCAL @message
+    LOCAL @messages
+    LOCAL @queue
+    LOCAL @qusername
+    LOCAL @size
+    LOCAL @usertest
+
+    test -to @usertest -null @@qusername
+
+    IF @usertest THEN $[
+        put -to @qusername QSYSOPR
+    ]$ ELSE $[
+        put -to @qusername @@qusername
+    ]$
+
+    as400 -to @as400 @@host @@username @@password
+    user -as400 @as400 -to @queue -userprofile @qusername -query msgq
+    msgq -as400 @as400 -to @messages -reply @queue
+
+    \\ ${ dpoint needs an alertlevel even for crit and warn comparators }$
+    dpoint -to @dpoint -dkey OS|AS400|MESSAGES -value 1 -type int -compare crit -alertlevel 0
+    @dpoint -to @dpoint -addkey @qusername
+
+    FOR @message in @messages $[
+        LOCAL @body
+        @message -to @body -message
+        @dpoint -msg @body 
+    ]$
+    bye
+]$

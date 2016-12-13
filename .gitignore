@@ -1,0 +1,8 @@
+*.o
+*.so
+*.sw?
+*.tmp
+/tmp
+.exists
+*.sess
+.DS_Store
