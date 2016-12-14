@@ -1,15 +1,23 @@
 include /opt/ublu/extensions/sysshep/sysshep.qsys2.sysdiskstat.ublu
 
 # Runs some basic monitoring, working around diskstats issues
-FUNC sysshep.nodiskstat ( username password host ) $[
+FUNC sysshep.nodiskstat ( properties ) $[
     LOCAL @as400
     LOCAL @db
     LOCAL @stats
+    LOCAL @host
+    LOCAL @username
+    LOCAL @password
 
-    as400 -to @as400 @@host @@username @@password
+    props -read @@properties
+    props -to @username -get sysshep.username
+    props -to @host -get sysshep.host
+    props -to @password -get sysshep.password
+
+    as400 -to @as400 @host @username @password
     monitor -as400 @as400 -status
     monitor -as400 @as400 -version
-    db -to @db -dbtype as400 -connect @@host QSYS2 @@username @@password
+    db -to @db -dbtype as400 -connect @host QSYS2 @username @password
     sysshep.qsys2.sysdiskstat ( @db @stats )
     put @stats
     db -dbconnected @db -disconnect

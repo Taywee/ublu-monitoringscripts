@@ -1,14 +1,22 @@
 # Gets all messages waiting for a particular username, and prints them
-FUNC sysshep.alarm_msgw ( username password host qusername ) $[
+FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
     LOCAL @as400
     LOCAL @dpoint
+    LOCAL @host
     LOCAL @list
     LOCAL @message
     LOCAL @messages
+    LOCAL @password
     LOCAL @queue
     LOCAL @qusername
     LOCAL @size
+    LOCAL @username
     LOCAL @usertest
+
+    props -read @@propertiesfile
+    props -to @username -get sysshep.username
+    props -to @host -get sysshep.host
+    props -to @password -get sysshep.password
 
     test -to @usertest -null @@qusername
 
@@ -18,7 +26,7 @@ FUNC sysshep.alarm_msgw ( username password host qusername ) $[
         put -to @qusername @@qusername
     ]$
 
-    as400 -to @as400 @@host @@username @@password
+    as400 -to @as400 @host @username @password
     user -as400 @as400 -to @queue -userprofile @qusername -query msgq
     msgq -as400 @as400 -to @messages -reply @queue
 
