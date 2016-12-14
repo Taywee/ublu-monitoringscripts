@@ -58,6 +58,9 @@ then
 	gensh_runtime_opts="${gensh_runtime_opts}string -to @qusername -trim \${ ${QUSERNAME} }$ "
 fi
 
+# CD to script dir for include
+cd "$(dirname "$0")"
+
 # Invocation
 java -jar /opt/ublu/ublu.jar ${gensh_runtime_opts} include ${SILENT}sysshep.alarm_msgw.ublu sysshep.alarm_msgw \( @properties @qusername \) 
 exit $?

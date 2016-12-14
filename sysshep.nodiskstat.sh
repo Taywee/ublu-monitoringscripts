@@ -51,6 +51,8 @@ else
 	usage
 	exit 2
 fi
+# CD to script dir
+cd "$(dirname "$0")"
 
 # Invocation
 java -jar /opt/ublu/ublu.jar ${gensh_runtime_opts} include ${SILENT}sysshep.nodiskstat.ublu sysshep.nodiskstat \( @properties \) 
