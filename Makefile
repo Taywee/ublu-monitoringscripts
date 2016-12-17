@@ -13,7 +13,7 @@ clean:
 
 
 sysshep.alarm_msgw.sh : sysshep.alarm_msgw.ublu
-	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -optr p PROPERTIES @properties '$${' credentials properties file '}$$' -opt q QUSERNAME @qusername '$${' username to be monitored \(defaults to QSYSOPR\) '}$$' '$${' sysshep.alarm_msgw.sh: monitor's a user's message queue for messages waiting '}$$' $(DIR)/$< '$${' sysshep.alarm_msgw \( @properties @qusername \) '}$$'
+	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -optr p PROPERTIES @properties '$${' credentials properties file '}$$' -opt q QUSERNAME @qusername '$${' username to be monitored \(defaults to QSYSOPR\) '}$$' '$${' sysshep.alarm_msgw.sh: monitors a user\'s message queue for messages waiting '}$$' $(DIR)/$< '$${' sysshep.alarm_msgw \( @properties @qusername \) '}$$'
 
 sysshep.nodiskstat.sh : sysshep.nodiskstat.ublu
 	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -optr p PROPERTIES @properties '$${' credentials properties file '}$$' '$${' sysshep.nodiskstat.sh: do monitoring when diskstat is not available, through db2 '}$$' $(DIR)/$< '$${' sysshep.nodiskstat \( @properties \) '}$$'
