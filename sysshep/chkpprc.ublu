@@ -41,11 +41,9 @@ FUNC sysshep.chkpprc ( propertiesfile env type ) $[
     commandcall -as400 @as400 @command
 
     \\ ${ must ftp file, because qsh output can't be received, only showing the exit status, not stdout }$
-    LOCAL @ftp
     LOCAL @result
-    ftp -cd /tmp -session @ftp @host @username @password
-    @ftp -get @tmpfile -tofile /tmp/ublutempfile.txt
-    put -to @result -from /tmp/ublutempfile.txt
+    ftp -get @tmpfile @host @username @password
+    put -to @result -fromfile @tmpfile
 
     LOCAL @teststring
     put -to @teststring ${ SUCCESSFUL, ready for the SWPPRC command. (chkpprc) }$
