@@ -1,0 +1,69 @@
+# Runs the CHKPPRC command with the specified env and type, then tails the log
+# out to the console
+FUNC sysshep.chkpprc ( propertiesfile env type ) $[
+    LOCAL @username
+    LOCAL @host
+    LOCAL @password
+
+    props -read @@propertiesfile
+    props -to @username -get sysshep.username
+    props -to @host -get sysshep.host
+    props -to @password -get sysshep.password
+
+    \\ ${ build the command string }$
+    LOCAL @command
+    put -to @command ${ CHKPPRC ENV( }$
+    string -to @command -trim @command
+    string -to @command -cat @command @@env
+    string -to @command -cat @command ${ ) TYPE( }$
+    string -to @command -trim @command
+    string -to @command -cat @command @@type
+    string -to @command -cat @command ${ ) }$
+
+    LOCAL @as400
+    as400 -to @as400 @host @username @password
+
+    commandcall -as400 @as400 @command
+
+    \\ ${ build the tempfile string }$
+    LOCAL @tmpfile
+    put -to @tmpfile ${ /tmp/qzrdhasm. }$
+    string -to @tmpfile -trim @tmpfile
+    string -to @tmpfile -cat @tmpfile @username
+    string -to @tmpfile -cat @tmpfile ${ .txt }$
+    string -to @tmpfile -trim @tmpfile
+
+    \\ ${ build command to tail log, as we can not fetch log directly through ftp for some reason }$
+    put -to @command ${ QSH CMD('tail -n1 /QIBM/qzrdhasm/qzrdhasm.log > }$
+    string -to @command -cat @command @tmpfile
+    string -to @command -cat @command ${ ') }$
+
+    commandcall -as400 @as400 @command
+
+    \\ ${ must ftp file, because qsh output can't be received, only showing the exit status, not stdout }$
+    LOCAL @ftp
+    LOCAL @result
+    ftp -cd /tmp -session @ftp @host @username @password
+    @ftp -get @tmpfile -tofile /tmp/ublutempfile.txt
+    put -to @result -from /tmp/ublutempfile.txt
+
+    LOCAL @teststring
+    put -to @teststring ${ SUCCESSFUL, ready for the SWPPRC command. (chkpprc) }$
+    string -to @teststring -trim @teststring
+
+    \\ ${ check if the chkpprc was successful }$
+    LOCAL @test
+    calljava -to @test -- @result -method contains -arg @teststring
+
+    LOCAL @dpoint
+    dpoint -to @dpoint -dkey OS|AS400|CHKPPRC -compare info -alertlevel 0
+    @dpoint -to @dpoint -addkey @@env
+    @dpoint -to @dpoint -addkey @@type
+
+    IF @test THEN $[
+        @dpoint -msg ${ CHKPPRC check successful }$
+    ]$ ELSE $[
+        @dpoint -msg ${ CHKPPRC check FAILED! }$
+    ]$
+    bye
+]$
