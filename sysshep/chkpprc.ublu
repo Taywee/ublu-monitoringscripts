@@ -25,25 +25,15 @@ FUNC sysshep.chkpprc ( propertiesfile env type ) $[
 
     commandcall -as400 @as400 @command
 
-    \\ ${ build the tempfile string }$
-    LOCAL @tmpfile
-    put -to @tmpfile ${ /tmp/qzrdhasm. }$
-    string -to @tmpfile -trim @tmpfile
-    string -to @tmpfile -cat @tmpfile @username
-    string -to @tmpfile -cat @tmpfile ${ .txt }$
-    string -to @tmpfile -trim @tmpfile
-
     \\ ${ build command to tail log, as we can not fetch log directly through ftp for some reason }$
-    put -to @command ${ QSH CMD('tail -n1 /QIBM/qzrdhasm/qzrdhasm.log > }$
-    string -to @command -cat @command @tmpfile
-    string -to @command -cat @command ${ ') }$
+    put -to @command ${ QSH CMD('tail -n1 /QIBM/qzrdhasm/qzrdhasm.log > /tmp/qzrdhasm.sysshep') }$
 
     commandcall -as400 @as400 @command
 
     \\ ${ must ftp file, because qsh output can't be received, only showing the exit status, not stdout }$
     LOCAL @result
-    ftp -get @tmpfile @host @username @password
-    put -to @result -fromfile @tmpfile
+    ftp -get /tmp/qzrdhasm.sysshep @host @username @password
+    put -to @result -from /tmp/qzrdhasm.sysshep
 
     LOCAL @teststring
     put -to @teststring ${ SUCCESSFUL, ready for the SWPPRC command. (chkpprc) }$
