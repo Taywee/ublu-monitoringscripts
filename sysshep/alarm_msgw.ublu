@@ -1,24 +1,18 @@
 # Gets all messages waiting for a particular username, and prints them
 FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
-    LOCAL @as400
-    LOCAL @dpoint
-    LOCAL @host
-    LOCAL @list
-    LOCAL @message
-    LOCAL @messages
-    LOCAL @password
-    LOCAL @queue
-    LOCAL @qusername
-    LOCAL @size
-    LOCAL @username
-    LOCAL @usertest
-
     props -read @@propertiesfile
+
+    LOCAL @username
+    LOCAL @host
+    LOCAL @password
     props -to @username -get sysshep.username
     props -to @host -get sysshep.host
     props -to @password -get sysshep.password
 
+    LOCAL @usertest
     test -to @usertest -null @@qusername
+
+    LOCAL @qusername
 
     IF @usertest THEN $[
         put -to @qusername QSYSOPR
@@ -26,11 +20,17 @@ FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
         put -to @qusername @@qusername
     ]$
 
+    LOCAL @as400
     as400 -to @as400 @host @username @password
+
+    LOCAL @queue
     user -as400 @as400 -to @queue -userprofile @qusername -query msgq
+
+    LOCAL @messages
     msgq -as400 @as400 -to @messages -reply @queue
 
     \\ ${ dpoint needs an alertlevel even for crit and warn comparators }$
+    LOCAL @dpoint
     dpoint -to @dpoint -dkey OS|AS400|MESSAGES -value 1 -type int -compare crit -alertlevel 0
     @dpoint -to @dpoint -addkey @qusername
 

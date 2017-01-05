@@ -1,11 +1,11 @@
 # Runs the CHKPPRC command with the specified env and type, then tails the log
 # out to the console
 FUNC sysshep.chkpprc ( propertiesfile env type ) $[
+    props -read @@propertiesfile
+
     LOCAL @username
     LOCAL @host
     LOCAL @password
-
-    props -read @@propertiesfile
     props -to @username -get sysshep.username
     props -to @host -get sysshep.host
     props -to @password -get sysshep.password
@@ -56,14 +56,14 @@ FUNC sysshep.chkpprc ( propertiesfile env type ) $[
     calljava -to @test -- @result -method contains -arg @teststring
 
     LOCAL @dpoint
-    dpoint -to @dpoint -dkey OS|AS400|CHKPPRC -compare info -alertlevel 0
+    dpoint -to @dpoint -dkey OS|AS400|CHKPPRC -alertlevel 0 -type int
     @dpoint -to @dpoint -addkey @@env
     @dpoint -to @dpoint -addkey @@type
 
     IF @test THEN $[
-        @dpoint -msg ${ CHKPPRC check successful }$
+        @dpoint -msg ${ CHKPPRC check successful }$ -value 0 -compare info
     ]$ ELSE $[
-        @dpoint -msg ${ CHKPPRC check FAILED! }$
+        @dpoint -msg ${ CHKPPRC check FAILED! }$ -value 2 -compare crit
     ]$
     bye
 ]$
