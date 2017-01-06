@@ -1,4 +1,4 @@
-SCRIPTS = sysshep.monitor.sh sysshep.alarm_msgw.sh sysshep.nodiskstat.sh sysshep.chkpprc.sh
+SCRIPTS = sysshep.monitor.sh sysshep.monitor_nodisk.sh sysshep.alarm_msgw.sh sysshep.nodiskstat.sh sysshep.chkpprc.sh
 
 UBLU_JAR ?= /opt/ublu/ublu.jar
 JAVA 	?= java
@@ -8,6 +8,9 @@ JAVA 	?= java
 all: $(SCRIPTS)
 clean:
 	-rm $(SCRIPTS)
+
+sysshep.monitor_nodisk.sh : sysshep/monitor_nodisk.ublu
+	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -includepath '$$SCRIPTDIR' -optr p PROPERTIES @properties '$${' credentials properties file '}$$' '$${' $@: ordinary ublu monitoring, minus disk stats '}$$' $< '$${' sysshep.monitor_nodisk \( @properties \) '}$$'
 
 sysshep.monitor.sh : sysshep/monitor.ublu
 	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -includepath '$$SCRIPTDIR' -optr p PROPERTIES @properties '$${' credentials properties file '}$$' '$${' $@: ordinary ublu monitoring '}$$' $< '$${' sysshep.monitor \( @properties \) '}$$'
