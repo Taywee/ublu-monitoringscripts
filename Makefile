@@ -1,5 +1,4 @@
-SOURCES = sysshep.alarm_msgw.ublu sysshep.nodiskstat.ublu sysshep.chkpprc.sh
-SCRIPTS =  $(SOURCES:.ublu=.sh)
+SCRIPTS = sysshep.monitor.sh sysshep.alarm_msgw.sh sysshep.nodiskstat.sh sysshep.chkpprc.sh
 
 UBLU_JAR ?= /opt/ublu/ublu.jar
 JAVA 	?= java
@@ -10,6 +9,8 @@ all: $(SCRIPTS)
 clean:
 	-rm $(SCRIPTS)
 
+sysshep.monitor.sh : sysshep/monitor.ublu
+	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -includepath '$$SCRIPTDIR' -optr p PROPERTIES @properties '$${' credentials properties file '}$$' '$${' $@: ordinary ublu monitoring '}$$' $< '$${' sysshep.monitor \( @properties \) '}$$'
 
 sysshep.alarm_msgw.sh : sysshep/alarm_msgw.ublu
 	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -includepath '$$SCRIPTDIR' -optr p PROPERTIES @properties '$${' credentials properties file '}$$' -opt q QUSERNAME @qusername '$${' username to be monitored \(defaults to QSYSOPR\) '}$$' '$${' $@: monitors a user\'s message queue for messages waiting '}$$' $< '$${' sysshep.alarm_msgw \( @properties @qusername \) '}$$'

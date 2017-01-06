@@ -1,0 +1,15 @@
+# Runs all basic monitoring functionality; just to enable property use
+FUNC sysshep.monitor ( properties ) $[
+    props -read @@properties
+
+    LOCAL @username
+    LOCAL @host
+    LOCAL @password
+    props -to @username -get sysshep.username
+    props -to @host -get sysshep.host
+    props -to @password -get sysshep.password
+
+    LOCAL @as400
+    as400 -to @as400 @host @username @password
+    monitor -as400 @as400 -all
+]$
