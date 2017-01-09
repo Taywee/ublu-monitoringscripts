@@ -1,0 +1,21 @@
+# User profile utilities
+
+# Gets all messages waiting for a particular username, and prints them
+# qusername may be null, which checks for QSYSOPR instead
+FUNC sysshep.queue_from_username ( as400 qusername ) $[
+    LOCAL @usertest
+    test -to @usertest -null @@qusername
+
+    LOCAL @qusername
+
+    IF @usertest THEN $[
+        put -to @qusername QSYSOPR
+    ]$ ELSE $[
+        put -to @qusername @@qusername
+    ]$
+
+    LOCAL @queue
+    user -as400 @as400 -to @queue -userprofile @qusername -query msgq
+
+    put -to ~ @queue
+]$

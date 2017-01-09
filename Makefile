@@ -1,4 +1,4 @@
-SCRIPTS = sysshep.monitor.sh sysshep.monitor_nodisk.sh sysshep.alarm_msgw.sh sysshep.nodiskstat.sh sysshep.chkpprc.sh
+SCRIPTS = sysshep.monitor.sh sysshep.monitor_nodisk.sh sysshep.msgq.sh sysshep.alarm_msgw.sh sysshep.nodiskstat.sh sysshep.chkpprc.sh
 
 UBLU_JAR ?= /opt/ublu/ublu.jar
 JAVA 	?= java
@@ -17,6 +17,9 @@ sysshep.monitor.sh : sysshep/monitor.ublu
 
 sysshep.alarm_msgw.sh : sysshep/alarm_msgw.ublu
 	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -includepath '$$SCRIPTDIR' -optr p PROPERTIES @properties '$${' credentials properties file '}$$' -opt q QUSERNAME @qusername '$${' username to be monitored \(defaults to QSYSOPR\) '}$$' '$${' $@: monitors a user\'s message queue for messages waiting '}$$' $< '$${' sysshep.alarm_msgw \( @properties @qusername \) '}$$'
+
+sysshep.msgq.sh : sysshep/msgq.ublu
+	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -includepath '$$SCRIPTDIR' -optr p PROPERTIES @properties '$${' credentials properties file '}$$' -opt q QUSERNAME @qusername '$${' username to be monitored \(defaults to QSYSOPR\) '}$$' -optr t TIMEFILE @timefile '$${' temp file to store last timestamp in '}$$' '$${' $@: print all messages for message queue since the last check '}$$' $< '$${' sysshep.msgq \( @properties @qusername @timefile \) '}$$'
 
 sysshep.nodiskstat.sh : sysshep/nodiskstat.ublu
 	$(JAVA) -jar $(UBLU_JAR) -silent gensh -to $@ -path $(UBLU_JAR) -includepath '$$SCRIPTDIR' -optr p PROPERTIES @properties '$${' credentials properties file '}$$' '$${' $@: do monitoring when diskstat is not available, through db2 '}$$' $< '$${' sysshep.nodiskstat \( @properties \) '}$$'

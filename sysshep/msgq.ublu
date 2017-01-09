@@ -1,0 +1,57 @@
+include sysshep/userprof.ublu
+
+# Print all messages from a message queue since the time specified in the
+# temp file
+FUNC sysshep.msgq ( propertiesfile qusername timefile ) $[
+    props -read @@propertiesfile
+
+    props -to ~ -get sysshep.password
+    props -to ~ -get sysshep.username
+    props -to ~ -get sysshep.host
+
+    LOCAL @as400
+    as400 -to @as400 ~ ~ ~
+
+    sysshep.queue_from_username ( @as400 @@qusername )
+
+    LOCAL @messages
+    msgq -as400 @as400 -to @messages -all ~
+
+    \\ ${ Set up timestamps.  lastlatest is the last run's latest timestamps.
+    All timestamps newer than this one will be printed.  newlatest is the new
+    latest timestamp, which will be set in the lastlatest file. }$
+    LOCAL @lastlatest
+    calljava -to @lastlatest -new java.util.GregorianCalendar
+
+    LOCAL @stamp
+    TRY $[
+        put -to @stamp -fromfile @@timefile
+        num -to @stamp -long @stamp
+    ]$ CATCH $[
+        num -to @stamp -long 0
+    ]$
+    calljava -- @lastlatest -method setTimeInMillis -primarg @stamp
+
+    LOCAL @newlatest
+    calljava -to @newlatest -new java.util.GregorianCalendar
+    calljava -- @newlatest -method setTimeInMillis -primarg @stamp
+
+    FOR @message in @messages $[
+        LOCAL @date
+        calljava -to @date -- @message -method getDate
+
+        calljava -to ~ -- @date -method after -arg @lastlatest
+        IF ~ THEN $[
+            put @message
+
+            calljava -to ~ -- @date -method after -arg @newlatest
+            IF ~ THEN $[
+                put -to @newlatest -from @date
+            ]$
+        ]$
+    ]$
+
+    calljava -to ~ -- @newlatest -method getTimeInMillis
+    put -tofile @@timefile -from ~
+    bye
+]$

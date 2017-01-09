@@ -1,3 +1,5 @@
+include sysshep/userprof.ublu
+
 # Gets all messages waiting for a particular username, and prints them
 FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
     props -read @@propertiesfile
@@ -9,22 +11,12 @@ FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
     props -to @host -get sysshep.host
     props -to @password -get sysshep.password
 
-    LOCAL @usertest
-    test -to @usertest -null @@qusername
-
-    LOCAL @qusername
-
-    IF @usertest THEN $[
-        put -to @qusername QSYSOPR
-    ]$ ELSE $[
-        put -to @qusername @@qusername
-    ]$
-
     LOCAL @as400
     as400 -to @as400 @host @username @password
 
+    sysshep.queue_from_username ( @as400 @@qusername )
     LOCAL @queue
-    user -as400 @as400 -to @queue -userprofile @qusername -query msgq
+    put -to @queue ~
 
     LOCAL @messages
     msgq -as400 @as400 -to @messages -reply @queue
