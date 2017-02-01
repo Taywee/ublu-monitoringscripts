@@ -22,7 +22,7 @@ FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
 
         LOCAL @test
         @as400 -to @test -validate
-        IF @test then $[ \\ ${ Do nothing }$ ]$ ELSE $[ THROW ${ Login validation failure }$ ]$
+        IF @test THEN $[ \\ ${ Do nothing }$ ]$ ELSE $[ THROW ${ Login validation failure }$ ]$
 
         @logindpoint -msg @body -compare info
     ]$ CATCH $[
