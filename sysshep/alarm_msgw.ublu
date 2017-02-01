@@ -19,12 +19,18 @@ FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
 
     TRY $[
         as400 -to @as400 @host @username @password
+
+        LOCAL @test
+        @as400 -to @test -validate
+        IF @test then $[ \\ ${ Do nothing }$ ]$ ELSE $[ THROW ${ Login validation failure }$ ]$
+
         @logindpoint -msg @body -compare info
     ]$ CATCH $[
         LOCAL @body
         put -to @body ${ Could not log in as }$
         string -to @body -cat @body @username
         @logindpoint -msg @body -compare crit
+        bye
     ]$
 
     sysshep.queue_from_username ( @as400 @@qusername )
