@@ -1,7 +1,10 @@
 include sysshep/userprof.ublu
+include sysshep/kill.ublu
 
 # Gets all messages waiting for a particular username, and prints them
 FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
     props -read @@propertiesfile
 
     LOCAL @username

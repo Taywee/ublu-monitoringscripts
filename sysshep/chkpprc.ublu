@@ -1,6 +1,10 @@
+include sysshep/kill.ublu
+
 # Runs the CHKPPRC command with the specified env and type, then tails the log
 # out to the console
 FUNC sysshep.chkpprc ( propertiesfile env type ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
     props -read @@propertiesfile
 
     LOCAL @username

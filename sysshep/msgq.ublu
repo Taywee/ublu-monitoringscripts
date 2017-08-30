@@ -1,8 +1,12 @@
 include sysshep/userprof.ublu
+include sysshep/kill.ublu
 
 # Print all messages from a message queue since the time specified in the
 # temp file
 FUNC sysshep.msgq ( propertiesfile qusername timefile ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
+
     props -read @@propertiesfile
 
     props -to ~ -get sysshep.password

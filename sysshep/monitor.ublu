@@ -1,5 +1,9 @@
+include sysshep/kill.ublu
+
 # Runs all basic monitoring functionality; just to enable property use
 FUNC sysshep.monitor ( properties ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
     props -read @@properties
 
     LOCAL @username
@@ -12,4 +16,5 @@ FUNC sysshep.monitor ( properties ) $[
     LOCAL @as400
     as400 -to @as400 @host @username @password
     monitor -as400 @as400 -all
+    bye
 ]$

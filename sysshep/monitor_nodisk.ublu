@@ -1,5 +1,9 @@
+include sysshep/kill.ublu
+
 # Runs most basic monitoring functionality, minus disk use
 FUNC sysshep.monitor_nodisk ( properties ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
     props -read @@properties
 
     LOCAL @username
@@ -13,4 +17,5 @@ FUNC sysshep.monitor_nodisk ( properties ) $[
     as400 -to @as400 @host @username @password
     monitor -as400 @as400 -version
     monitor -as400 @as400 -status
+    bye
 ]$
