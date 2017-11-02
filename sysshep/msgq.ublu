@@ -66,7 +66,7 @@ FUNC sysshep.msgq ( propertiesfile qusername timefile ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
     sysshep.killafter ( 600000 )
 
-    sysshep.get_new_messages( @@propertiesfile @@qusername @@timefile )
+    sysshep.get_new_messages ( @@propertiesfile @@qusername @@timefile )
 
     LOCAL @messages
     tuple -assign @messages ~
@@ -85,7 +85,7 @@ FUNC sysshep.msg_contains ( propertiesfile qusername timefile substring ) $[
     LOCAL @substring
     put -to @substring @@substring
 
-    sysshep.get_new_messages( @@propertiesfile @@qusername @@timefile )
+    sysshep.get_new_messages ( @@propertiesfile @@qusername @@timefile )
 
     LOCAL @messages
     tuple -assign @messages ~
