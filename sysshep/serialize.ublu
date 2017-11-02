@@ -1,0 +1,26 @@
+# Serialization utilities
+
+# Serializes a Serializable java object to a named file
+FUNC sysshep.serialize.toFile ( object filename ) $[
+    LOCAL @filestream
+    LOCAL @objectstream
+    put -to @filename @@filename
+    calljava -to @filestream -new java.io.FileOutputStream -arg @filename
+    calljava -to @objectstream -new java.io.ObjectOutputStream -castarg @filestream java.io.OutputStream
+    calljava -- @objectstream -method writeObject -castarg @@object java.lang.Object
+    calljava -- @objectstream -method close
+    calljava -- @filestream -method close
+]$
+
+# Deserializes a Serializable java object from a named file
+FUNC sysshep.serialize.fromFile ( filename ) $[
+    LOCAL @filestream
+    LOCAL @objectstream
+    LOCAL @filename
+    put -to @filename @@filename
+    calljava -to @filestream -new java.io.FileInputStream -arg @filename
+    calljava -to @objectstream -new java.io.ObjectInputStream -castarg @filestream java.io.InputStream
+    calljava -to ~ -- @objectstream -method readObject
+    calljava -- @objectstream -method close
+    calljava -- @filestream -method close
+]$

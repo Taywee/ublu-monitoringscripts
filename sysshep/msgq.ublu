@@ -1,11 +1,27 @@
 include sysshep/userprof.ublu
 include sysshep/kill.ublu
+include sysshep/serialize.ublu
 
-# Print all messages from a message queue since the time specified in the
-# temp file
-FUNC sysshep.msgq ( propertiesfile qusername timefile ) $[
-    \\ ${ Give a 10 minute timer before this script kills itself }$
-    sysshep.killafter ( 600000 )
+# Get new messages from a message queue since time specified in temp file
+FUNC sysshep.get_new_messages ( propertiesfile qusername timefile ) $[
+    \\ ${ Set up timestamps.  lastlatest is the last run's latest timestamps.
+    All timestamps newer than this one will be printed.  newlatest is the new
+    latest timestamp, which will be set in the lastlatest file. }$
+    LOCAL @lastlatest
+
+    \\ ${ Try to serialize from the timefile, otherwise set it to epoch }$
+    TRY $[
+        sysshep.serialize.fromFile ( @@timefile )
+        tuple -assign @lastlatest ~
+    ]$ CATCH $[
+        LOCAL @zero
+        num -to @zero -long 0
+        calljava -to @lastlatest -new java.util.GregorianCalendar
+        calljava -- @lastlatest -method setTimeInMillis -primarg @zero
+    ]$
+
+    LOCAL @newlatest
+    calljava -to @newlatest -- @lastlatest -method clone
 
     props -read @@propertiesfile
 
@@ -21,41 +37,73 @@ FUNC sysshep.msgq ( propertiesfile qusername timefile ) $[
     LOCAL @messages
     msgq -as400 @as400 -to @messages -all ~
 
-    \\ ${ Set up timestamps.  lastlatest is the last run's latest timestamps.
-    All timestamps newer than this one will be printed.  newlatest is the new
-    latest timestamp, which will be set in the lastlatest file. }$
-    LOCAL @lastlatest
-    calljava -to @lastlatest -new java.util.GregorianCalendar
+    LOCAL @messagelist
+    list -to @messagelist -new
 
-    LOCAL @stamp
-    TRY $[
-        put -to @stamp -fromfile @@timefile
-        num -to @stamp -long @stamp
-    ]$ CATCH $[
-        num -to @stamp -long 0
-    ]$
-    calljava -- @lastlatest -method setTimeInMillis -primarg @stamp
-
-    LOCAL @newlatest
-    calljava -to @newlatest -new java.util.GregorianCalendar
-    calljava -- @newlatest -method setTimeInMillis -primarg @stamp
-
-    FOR @message in @messages $[
+    FOR @message IN @messages $[
         LOCAL @date
         calljava -to @date -- @message -method getDate
 
         calljava -to ~ -- @date -method after -arg @lastlatest
         IF ~ THEN $[
-            put @message
+            @messagelist -add @message
 
             calljava -to ~ -- @date -method after -arg @newlatest
             IF ~ THEN $[
-                put -to @newlatest -from @date
+                tuple -assign @newlatest @date
             ]$
         ]$
     ]$
 
-    calljava -to ~ -- @newlatest -method getTimeInMillis
-    put -tofile @@timefile -from ~
+    sysshep.serialize.toFile ( @newlatest @@timefile )
+    tuple -assign ~ @messagelist
+    bye
+]$
+
+# Print all messages from a message queue since the time specified in the
+# temp file
+FUNC sysshep.msgq ( propertiesfile qusername timefile ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
+
+    sysshep.get_new_messages( @@propertiesfile @@qusername @@timefile )
+
+    LOCAL @messages
+    tuple -assign @messages ~
+
+    FOR @message IN @messages $[
+        put @message
+    ]$
+    bye
+]$
+
+# Gets latest messages for a user and checks them for a substring
+FUNC sysshep.msg_contains ( propertiesfile qusername timefile substring ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
+
+    LOCAL @substring
+    put -to @substring @@substring
+
+    sysshep.get_new_messages( @@propertiesfile @@qusername @@timefile )
+
+    LOCAL @messages
+    tuple -assign @messages ~
+
+    \\ ${ dpoint needs an alertlevel even for crit and warn comparators }$
+    LOCAL @dpoint
+    dpoint -to @dpoint -dkey OS|AS400|MESSAGES -value 1 -type int -compare crit -alertlevel 0
+    @dpoint -to @dpoint -addkey @qusername
+
+    FOR @message in @messages $[
+        LOCAL @body
+        @message -to @body -message
+        calljava -to ~ -- @body -method contains -castarg @substring java.lang.CharSequence
+
+        \\ ${ Simply alarm using the body if the value was contained at all }$
+        IF ~ THEN $[
+            @dpoint -msg @body 
+        ]$
+    ]$
     bye
 ]$
