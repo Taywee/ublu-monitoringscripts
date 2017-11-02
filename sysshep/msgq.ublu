@@ -57,7 +57,6 @@ FUNC sysshep.get_new_messages ( propertiesfile qusername timefile ) $[
 
     sysshep.serialize.toFile ( @newlatest @@timefile )
     tuple -assign ~ @messagelist
-    bye
 ]$
 
 # Print all messages from a message queue since the time specified in the
