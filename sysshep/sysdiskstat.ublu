@@ -1,0 +1,24 @@
+include sysshep/kill.ublu
+include /opt/ublu/extensions/sysshep/sysshep.qsys2.sysdiskstat.ublu
+
+# Runs only disk stat monitoring, working around diskstats issues
+FUNC sysshep.sysdiskstat ( properties ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
+    props -read @@properties
+
+    LOCAL @username
+    LOCAL @host
+    LOCAL @password
+    props -to @username -get sysshep.username
+    props -to @host -get sysshep.host
+    props -to @password -get sysshep.password
+
+    LOCAL @db
+    db -to @db -dbtype as400 -connect @host QSYS2 @username @password
+    LOCAL @stats
+    sysshep.qsys2.sysdiskstat ( @db @stats )
+    put @stats
+    db -dbconnected @db -disconnect
+    bye
+]$
