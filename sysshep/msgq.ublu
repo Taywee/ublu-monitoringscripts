@@ -97,11 +97,43 @@ FUNC sysshep.msg_contains ( propertiesfile qusername timefile substring ) $[
     FOR @message in @messages $[
         LOCAL @body
         @message -to @body -message
+        \\ ${ Need to cast the substring to hit the correct overload }$
         calljava -to ~ -- @body -method contains -castarg @substring java.lang.CharSequence
 
         \\ ${ Simply alarm using the body if the value was contained at all }$
         IF ~ THEN $[
-            @dpoint -msg @body 
+            @dpoint -msg @body
+        ]$
+    ]$
+    bye
+]$
+
+# Gets latest messages for a user and checks them for a regex match
+FUNC sysshep.msg_matches ( propertiesfile qusername timefile pattern ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 )
+
+    LOCAL @pattern
+    put -to @pattern @@pattern
+
+    sysshep.get_new_messages ( @@propertiesfile @@qusername @@timefile )
+
+    LOCAL @messages
+    tuple -assign @messages ~
+
+    \\ ${ dpoint needs an alertlevel even for crit and warn comparators }$
+    LOCAL @dpoint
+    dpoint -to @dpoint -dkey OS|AS400|MESSAGES -value 1 -type int -compare crit -alertlevel 0
+    @dpoint -to @dpoint -addkey @qusername
+
+    FOR @message in @messages $[
+        LOCAL @body
+        @message -to @body -message
+        calljava -to ~ -- @body -method matches -arg @pattern
+
+        \\ ${ Simply alarm using the body if the value was matched }$
+        IF ~ THEN $[
+            @dpoint -msg @body
         ]$
     ]$
     bye
