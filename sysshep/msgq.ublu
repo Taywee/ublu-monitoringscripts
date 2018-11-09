@@ -19,12 +19,10 @@ FUNC sysshep.get_new_messages ( propertiesfile msgqueue timefile ) $[
         calljava -- @lastlatest -method setTimeInMillis -primarg @zero
     ]$
 
-    LOCAL @msgqueuenull
-    test -to @msgqueuenull -null @@msgqueue
-
     LOCAL @msgqueue
+    test -to ~ -null @@msgqueue
 
-    IF @msgqueuenull THEN $[
+    IF ~ THEN $[
         put -to @msgqueue /qsys.lib/qsysopr.msgq
     ]$ ELSE $[
         put -to @msgqueue @@msgqueue
@@ -117,12 +115,9 @@ FUNC sysshep.msg_contains ( propertiesfile msgqueue timefile substring ) $[
 ]$
 
 # Gets latest messages for a user and checks them for a regex match
-FUNC sysshep.msg_matches ( propertiesfile msgqueue timefile pattern ) $[
+FUNC sysshep.msg_matches ( propertiesfile msgqueue timefile pattern ignorepattern ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
     sysshep.killafter ( 600000 )
-
-    LOCAL @pattern
-    put -to @pattern @@pattern
 
     sysshep.get_new_messages ( @@propertiesfile @@msgqueue @@timefile )
 
@@ -137,11 +132,24 @@ FUNC sysshep.msg_matches ( propertiesfile msgqueue timefile pattern ) $[
     FOR @message in @messages $[
         LOCAL @body
         @message -to @body -message
-        calljava -to ~ -- @body -method matches -arg @pattern
 
-        \\ ${ Simply alarm using the body if the value was matched }$
+        LOCAL @ignore
+
+        test -to ~ -null @@ignorepattern
         IF ~ THEN $[
-            @dpoint -msg @body
+            \\ ${ Ignore nothing on null }$
+            tuple -false @ignore
+        ]$ ELSE $[
+            calljava -to @ignore -- @body -method matches -arg @@ignorepattern
+        ]$
+
+        IF -! @ignore $[
+            calljava -to ~ -- @body -method matches -arg @@pattern
+
+            \\ ${ Simply alarm using the body if the value was matched }$
+            IF ~ THEN $[
+                @dpoint -msg @body
+            ]$
         ]$
     ]$
     bye
