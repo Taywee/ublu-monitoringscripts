@@ -143,7 +143,7 @@ FUNC sysshep.msg_matches ( propertiesfile msgqueue timefile pattern ignorepatter
             calljava -to @ignore -- @body -method matches -arg @@ignorepattern
         ]$
 
-        IF -! @ignore $[
+        IF -! @ignore THEN $[
             calljava -to ~ -- @body -method matches -arg @@pattern
 
             \\ ${ Simply alarm using the body if the value was matched }$

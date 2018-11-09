@@ -94,6 +94,8 @@ SCRIPTDIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
 # Prelude commands to execute before invocation
 # No prelude commands
 
+set -o noglob
+
 # Invocation
 java${JVMOPTS}${JVMPROPS} -Dublu.includepath="$SCRIPTDIR" -jar /opt/ublu/ublu.jar ${gensh_runtime_opts} include ${SILENT}sysshep/msgq.ublu sysshep.msg_matches \( @properties @msgqueue @timefile @pattern @ignorepattern \) 
 exit $?

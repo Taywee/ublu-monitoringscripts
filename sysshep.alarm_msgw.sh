@@ -59,6 +59,7 @@ then
 fi
 
 SCRIPTDIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
+set -o noglob
 
 # Invocation
 java -Dublu.includepath="$SCRIPTDIR" -jar /opt/ublu/ublu.jar ${gensh_runtime_opts} include ${SILENT}sysshep/alarm_msgw.ublu sysshep.alarm_msgw \( @properties @qusername \) 
