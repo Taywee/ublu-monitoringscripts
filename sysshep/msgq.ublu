@@ -40,13 +40,28 @@ FUNC sysshep.get_new_messages ( propertiesfile msgqueue timefile ) $[
     LOCAL @as400
     as400 -to @as400 ~ ~ ~
 
-    LOCAL @messages
-    msgq -as400 @as400 -to @messages -all @msgqueue
-
     LOCAL @messagelist
     list -to @messagelist -new
 
-    FOR @message IN @messages $[
+    \\ ${ LOCAL @messages }$
+    \\ ${ msgq -as400 @as400 -to @messages -all @msgqueue }$
+
+    \\ ${ We use this because the msgq command is broken for reading all messages }$
+    LOCAL @mq
+    calljava -to @mq -new com.ibm.as400.access.MessageQueue -arg @as400 -arg @msgqueue
+    calljava -- @mq -method load
+
+    LOCAL @enum
+    calljava -to @enum -- @mq -method getMessages
+
+    LOCAL @keepgoing
+    calljava -to @keepgoing -- @enum -method hasMoreElements
+
+    WHILE @keepgoing $[
+        LOCAL @message
+        calljava -to @message -- @enum -method nextElement
+        calljava -to @keepgoing -- @enum -method hasMoreElements
+
         LOCAL @date
         calljava -to @date -- @message -method getDate
 
