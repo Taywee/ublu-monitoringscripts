@@ -1,5 +1,5 @@
 include sysshep/kill.ublu
-include /opt/ublu/extensions/sysshep/sysshep.qsys2.sysdiskstat.ublu
+include sysshep/sysshep.qsys2.sysdiskstat.ublu
 
 # Runs only disk stat monitoring, working around diskstats issues
 FUNC sysshep.sysdiskstat ( properties ) $[
@@ -16,9 +16,8 @@ FUNC sysshep.sysdiskstat ( properties ) $[
 
     LOCAL @db
     db -to @db -dbtype as400 -connect @host QSYS2 @username @password
-    LOCAL @stats
-    sysshep.qsys2.sysdiskstat ( @db @stats )
-    put @stats
+    sysshep.qsys2.sysdiskstat ( @db )
+    put ~
     db -dbconnected @db -disconnect
     bye
 ]$

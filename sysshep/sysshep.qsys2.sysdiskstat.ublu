@@ -1,0 +1,112 @@
+# sysshep.qsys2.sysdiskstat.ublu
+# Extension to Ublu Midrange and Mainframe Life Cycle Extension language
+# https://github.com/jwoehr/ublu
+# System Shepherd is Copyright (C) 2016 Absolute Performance, Inc.
+# Copyright (C) 2016 Jack J. Woehr http://www.softwoehr.com
+# Edited 2019 Taylor C. Richberger
+# See the Ublu license (BSD-2 open source)
+
+# sysshep.qsys2.sysdiskstat
+# get datapoints for diskstat from db2 services, returning as a string on the
+# stack
+#
+# Usage example:
+#   db -to @myDb -dbtype as400 -connect mysys QSYS2 myid mypasswd
+#   sysshep.qsys2.sysdiskstat ( @myDb )
+#   put ~
+FUNC sysshep.qsys2.sysdiskstat ( qsys2db ) $[
+   LOCAL @myRs
+   LOCAL @dpCap LOCAL @dpCapU  LOCAL @dpCapM  LOCAL @dpCapP
+   LOCAL @dpMir LOCAL @dpMirS
+   LOCAL @valid  LOCAL @tmp
+   LOCAL @output
+   string -to @output -new
+   @@qsys2db -to @myRs -query ${ SELECT * FROM SYSDISKSTAT }$   
+   @myRs -to @valid -abs 1   
+   WHILE @valid $[
+       
+       \\ ${ Generate path used by all }$
+       dpoint -to @dpCap -dkey OS400|QSYS2|SYSDISKSTAT
+       @myRs -to ~ -lget ASP_NUMBER
+       @dpCap -to NULL: -addkey ~
+       @myRs -to ~ -lget DISK_TYPE
+       @dpCap -to NULL: -addkey ~
+       @myRs -to ~ -lget DISK_MODEL
+       @dpCap -to NULL: -addkey ~  
+       @myRs -to ~ -lget UNIT_NUMBER
+       @dpCap -to NULL: -addkey ~
+       @myRs -to ~ -lget UNIT_TYPE
+       @dpCap -to NULL: -addkey ~
+       
+       \\ ${ Copy }$  
+       @dpCap -to @dpCapU -dup
+       @dpCap -to @dpCapM -dup
+       @dpCap -to @dpCapP -dup
+       @dpCap -to @dpMir  -dup
+       @dpCap -to @dpMirS -dup
+       
+       \\ ${ Storage datapoints }$  
+       @dpCap -to NULL: -addkey UNIT_STORAGE_CAPACITY      
+       @myRs -to ~ -lget UNIT_STORAGE_CAPACITY
+       @dpCap -to NULL: -value ~ -type long
+       
+       @dpCapU -to NULL: -addkey UNIT_SPACE_AVAILABLE
+       @myRs -to ~ -lget UNIT_SPACE_AVAILABLE
+       @dpCapU -to NULL: -value ~ -type long
+       
+       @dpCapM -to NULL: -addkey UNIT_MEDIA_CAPACITY
+       @myRs -to ~ -lget UNIT_MEDIA_CAPACITY
+       @dpCapM -to NULL: -value ~ -type long
+       
+       @dpCapP -to NULL: -addkey PERCENT_USED
+       @myRs -to ~ -lget PERCENT_USED
+       @dpCapP -to NULL: -value ~ -type float
+       
+       \\ ${ LOGICAL_MIRRORED_PAIR_STATUS }$  
+       @dpMir -to NULL: -addkey LOGICAL_MIRRORED_PAIR_STATUS
+       @myRs -to @tmp -lget LOGICAL_MIRRORED_PAIR_STATUS
+       test -to ~ -null @tmp
+       IF ~ THEN $[
+           @dpMir -to NULL: -value -1 -type int
+       ]$ ELSE $[
+           \\ ${ here IBM uses the SQL CHAR type as a character value }$
+           @dpMir -to NULL: -value @tmp -type int
+       ]$
+         
+       \\ ${ MIRRORED_UNIT_STATUS }$  
+       @dpMirS -to NULL: -addkey MIRRORED_UNIT_STATUS
+       @myRs -to @tmp -lget MIRRORED_UNIT_STATUS
+       test -to ~ -null @tmp
+       IF ~ THEN $[
+           @dpMirS -to NULL: -value 0 -type int
+       ]$ ELSE $[
+           \\ ${ here IBM uses the SQL CHAR type is as a binary value }$
+           TRY $[
+               LOCAL @numval
+               num -to @numval -bin @tmp
+               @dpMirS -to NULL: -value @numval -type int
+           ]$ CATCH $[
+               @dpMirS -to NULL: -value 0 -type int
+           ]$
+       ]$
+         
+       \\ ${ Concat datapoints as listing }$  
+       string -to @output -cat @output @dpCap
+       string -to @output -nl @output
+       string -to @output -cat @output @dpCapU
+       string -to @output -nl @output
+       string -to @output -cat @output @dpCapM
+       string -to @output -nl @output
+       string -to @output -cat @output @dpCapP
+       string -to @output -nl @output
+       string -to @output -cat @output @dpMir
+       string -to @output -nl @output
+       string -to @output -cat @output @dpMirS
+       string -to @output -nl @output
+       @myRs -to @valid -next
+   ]$
+   rs -close @myRs
+   tuple -assign ~ @output
+]$
+
+# end
