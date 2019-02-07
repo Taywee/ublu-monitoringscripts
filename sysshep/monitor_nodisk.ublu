@@ -1,9 +1,9 @@
 include sysshep/kill.ublu
 
-# Runs most basic monitoring functionality, minus disk use
+\\ ${ Runs most basic monitoring functionality, minus disk use }$
 FUNC sysshep.monitor_nodisk ( properties ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
-    sysshep.killafter ( 600000 )
+    sysshep.killafter ( 600000 App|Ublu|Script|MonitorNodisk|Status )
     props -read @@properties
 
     LOCAL @username

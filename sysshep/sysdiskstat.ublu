@@ -1,10 +1,10 @@
 include sysshep/kill.ublu
 include sysshep/sysshep.qsys2.sysdiskstat.ublu
 
-# Runs only disk stat monitoring, working around diskstats issues
+\\ ${ Runs only disk stat monitoring, working around diskstats issues }$
 FUNC sysshep.sysdiskstat ( properties ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
-    sysshep.killafter ( 600000 )
+    sysshep.killafter ( 600000 App|Ublu|Script|SYSDISKSTAT|Status )
     props -read @@properties
 
     LOCAL @username

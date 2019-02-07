@@ -1,9 +1,9 @@
 include sysshep/kill.ublu
 
-# Runs all basic monitoring functionality; just to enable property use
+\\ ${ Runs all basic monitoring functionality; just to enable property use }$
 FUNC sysshep.monitor ( properties ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
-    sysshep.killafter ( 600000 )
+    sysshep.killafter ( 600000 App|Ublu|Script|Monitor|Status )
     props -read @@properties
 
     LOCAL @username

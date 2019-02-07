@@ -1,16 +1,29 @@
-# Kill utilities
+\\ ${ Kill utilities }$
 
-# Creates a background thread to kill ublu after a certain amount of time, to
-# avoid hung connections.
-# A call like `sysshep.killafter ( 5000 )`, for instance, will kill the entire program 5
-# seconds after the call is made, regardless of other circumstances.
-FUNC sysshep.killafter ( milliseconds ) $[
+\\ ${ Creates a background thread to kill ublu after a certain amount of time, to }$
+\\ ${ avoid hung connections. }$
+\\ ${ A call like `sysshep.killafter ( 5000 )`, for instance, will kill the entire program 5 }$
+\\ ${ seconds after the call is made, regardless of other circumstances. }$
+FUNC sysshep.killafter ( milliseconds dkey ) $[
     LOCAL @thread
     LOCAL @killscript
     put -to @killscript ${ sleep -m }$
     string -to @killscript -cat @killscript @@milliseconds
     string -to @killscript -bl @killscript
-    string -to @killscript -cat @killscript ${ exit }$
+    string -to @killscript -cat @killscript ${ dpoint -dkey }$
+    string -to @killscript -bl @killscript
+    string -to @killscript -cat @killscript @@dkey
+    string -to @killscript -bl @killscript
+    string -to @killscript -cat @killscript ${ -alertlevel 0 -value 0 -compare crit -msg }$
+    string -to @killscript -cat @killscript $
+    string -to @killscript -cat @killscript {
+    string -to @killscript -bl @killscript
+    string -to @killscript -cat @killscript ${ Script timed out and died }$
+    string -to @killscript -bl @killscript
+    string -to @killscript -cat @killscript }
+    string -to @killscript -cat @killscript $
+    string -to @killscript -bl @killscript
+    string -to @killscript -cat @killscript exit
     thread -to @thread -from @killscript
     @thread -start
 ]$

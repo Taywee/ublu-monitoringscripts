@@ -1,6 +1,6 @@
-# Serialization utilities
+\\ ${ Serialization utilities }$
 
-# Serializes a Serializable java object to a named file
+\\ ${ Serializes a Serializable java object to a named file }$
 FUNC sysshep.serialize.toFile ( object filename ) $[
     LOCAL @filestream
     LOCAL @objectstream

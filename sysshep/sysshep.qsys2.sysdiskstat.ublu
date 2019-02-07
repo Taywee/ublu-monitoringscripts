@@ -1,19 +1,19 @@
-# sysshep.qsys2.sysdiskstat.ublu
-# Extension to Ublu Midrange and Mainframe Life Cycle Extension language
-# https://github.com/jwoehr/ublu
-# System Shepherd is Copyright (C) 2016 Absolute Performance, Inc.
-# Copyright (C) 2016 Jack J. Woehr http://www.softwoehr.com
-# Edited 2019 Taylor C. Richberger
-# See the Ublu license (BSD-2 open source)
-
-# sysshep.qsys2.sysdiskstat
-# get datapoints for diskstat from db2 services, returning as a string on the
-# stack
-#
-# Usage example:
-#   db -to @myDb -dbtype as400 -connect mysys QSYS2 myid mypasswd
-#   sysshep.qsys2.sysdiskstat ( @myDb )
-#   put ~
+\\ ${ sysshep.qsys2.sysdiskstat.ublu }$
+\\ ${ Extension to Ublu Midrange and Mainframe Life Cycle Extension language }$
+\\ ${ https://github.com/jwoehr/ublu }$
+\\ ${ System Shepherd is Copyright (C) 2016 Absolute Performance, Inc. }$
+\\ ${ Copyright (C) 2016 Jack J. Woehr http://www.softwoehr.com }$
+\\ ${ Edited 2019 Taylor C. Richberger }$
+\\ ${ See the Ublu license (BSD-2 open source) }$
+\\ ${ }$
+\\ ${ sysshep.qsys2.sysdiskstat }$
+\\ ${ get datapoints for diskstat from db2 services, returning as a string on the }$
+\\ ${ stack }$
+\\ ${ }$
+\\ ${ Usage example: }$
+\\ ${   db -to @myDb -dbtype as400 -connect mysys QSYS2 myid mypasswd }$
+\\ ${   sysshep.qsys2.sysdiskstat ( @myDb ) }$
+\\ ${   put ~ }$
 FUNC sysshep.qsys2.sysdiskstat ( qsys2db ) $[
    LOCAL @myRs
    LOCAL @dpCap LOCAL @dpCapU  LOCAL @dpCapM  LOCAL @dpCapP

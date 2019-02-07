@@ -1,7 +1,7 @@
 include sysshep/kill.ublu
 include sysshep/serialize.ublu
 
-# Get new messages from a message queue since time specified in temp file
+\\ ${ Get new messages from a message queue since time specified in temp file }$
 FUNC sysshep.get_new_messages ( propertiesfile msgqueue timefile ) $[
     \\ ${ Set up timestamps.  lastlatest is the last run's latest timestamps.
     All timestamps newer than this one will be printed.  newlatest is the new
@@ -80,11 +80,11 @@ FUNC sysshep.get_new_messages ( propertiesfile msgqueue timefile ) $[
     tuple -assign ~ @messagelist
 ]$
 
-# Print all messages from a message queue since the time specified in the
-# temp file
+\\ ${ Print all messages from a message queue since the time specified in the }$
+\\ ${ temp file }$
 FUNC sysshep.msgq ( propertiesfile msgqueue timefile ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
-    sysshep.killafter ( 600000 )
+    sysshep.killafter ( 600000 App|Ublu|Script|MSGQ|Status )
 
     sysshep.get_new_messages ( @@propertiesfile @@msgqueue @@timefile )
 
@@ -97,10 +97,10 @@ FUNC sysshep.msgq ( propertiesfile msgqueue timefile ) $[
     bye
 ]$
 
-# Gets latest messages for a user and checks them for a substring
+\\ ${ Gets latest messages for a user and checks them for a substring }$
 FUNC sysshep.msg_contains ( propertiesfile msgqueue timefile substring ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
-    sysshep.killafter ( 600000 )
+    sysshep.killafter ( 600000 App|Ublu|Script|MSGContains|Status )
 
     LOCAL @substring
     put -to @substring @@substring
@@ -129,10 +129,10 @@ FUNC sysshep.msg_contains ( propertiesfile msgqueue timefile substring ) $[
     bye
 ]$
 
-# Gets latest messages for a user and checks them for a regex match
+\\ ${ Gets latest messages for a user and checks them for a regex match }$
 FUNC sysshep.msg_matches ( propertiesfile msgqueue timefile pattern ignorepattern ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
-    sysshep.killafter ( 600000 )
+    sysshep.killafter ( 600000 App|Ublu|Script|MsgMatches|Status )
 
     sysshep.get_new_messages ( @@propertiesfile @@msgqueue @@timefile )
 

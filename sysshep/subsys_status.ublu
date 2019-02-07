@@ -1,10 +1,10 @@
 include sysshep/kill.ublu
 
-# Checks a subsystem status to make sure it matches a wanted status (usually
-# *ACTIVE)
+\\ ${ Checks a subsystem status to make sure it matches a wanted status (usually }$
+\\ ${ *ACTIVE) }$
 FUNC sysshep.subsys_status ( propertiesfile subsyspath wantedstatus ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
-    \\ ${ sysshep.killafter ( 600000 ) }$
+    sysshep.killafter ( 600000 App|Ublu|Script|SUBSYSSTATUS|Status )
     props -read @@propertiesfile
 
     LOCAL @username
