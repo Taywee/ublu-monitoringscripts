@@ -5,6 +5,9 @@
 \\ ${ A call like `sysshep.killafter ( 5000 )`, for instance, will kill the entire program 5 }$
 \\ ${ seconds after the call is made, regardless of other circumstances. }$
 FUNC sysshep.killafter ( milliseconds dkey ) $[
+    ${ this builds a script thread that looks like: }$
+    ${ sleep -m @@milliseconds dpoint -dkey @@dkey -alertlevel 0 -value 0 -compare crit -msg " Script timed out and died " exit }$
+    ${ But with @@ tuples replaced literally and quotes fixed }$
     LOCAL @thread
     LOCAL @killscript
     put -to @killscript ${ sleep -m }$
