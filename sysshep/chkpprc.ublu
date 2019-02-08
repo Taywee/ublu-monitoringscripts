@@ -36,7 +36,7 @@ FUNC sysshep.chkpprc ( propertiesfile env type ) $[
 
     \\ ${ must ftp file, because qsh output can't be received, only showing the exit status, not stdout }$
     LOCAL @result
-    ftp -get /tmp/qzrdhasm.sysshep @host @username @password
+    oldftp -get /tmp/qzrdhasm.sysshep @host @username @password
     put -to @result -from /tmp/qzrdhasm.sysshep
 
     LOCAL @teststring
