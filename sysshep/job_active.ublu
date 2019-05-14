@@ -1,0 +1,86 @@
+include sysshep/kill.ublu
+
+# FUNC sysshep.job_active ( propertiesfile jobnamelist jobtype )
+# Checks for jobs in jobnamelist, form datapoint
+# Datpoint is info if job is active, alert if job is not active
+# ... propertiesfile is a props file with:
+# ...     sysshep.username
+# ...     sysshep.host
+# ...     sysshep.password
+# ... jobnamelist is a string list of job names to gen datapoint for each
+# ... jobtype is one of:
+# ...     BATCH
+# ...     INTERACTIVE
+FUNC sysshep.job_active ( propertiesfile jobnamelist jobtype ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 App|Ublu|Script|JOBACTIVE|Status )
+    props -read @@propertiesfile
+
+    LOCAL @username
+    LOCAL @host
+    LOCAL @password
+    props -to @username -get sysshep.username
+    props -to @host -get sysshep.host
+    props -to @password -get sysshep.password
+
+    LOCAL @as400
+
+    LOCAL @logindpoint
+    dpoint -to @logindpoint -dkey OS|AS400|Login -value 1 -type int -compare info -alertlevel 0
+    @logindpoint -to @logindpoint -addkey @username
+
+    TRY $[
+        as400 -to @as400 @host @username @password
+
+        LOCAL @test
+        @as400 -to @test -validate
+        IF @test THEN $[ \\ ${ Do nothing }$ ]$ ELSE $[ THROW ${ Login validation failure }$ ]$
+
+        @logindpoint -msg ${ could log in just fine }$ -compare info
+    ]$ CATCH $[
+        LOCAL @body
+        put -to @body ${ Could not log in as }$
+        string -to @body -cat @body @username
+        @logindpoint -msg @body -compare crit
+        bye
+    ]$
+
+    LOCAL @jl
+    LOCAL @njl
+    
+    joblist -as400 @as400 -to @jl -active -jobtype @@jobtype
+    list -to @njl
+    FOR @i in @jl $[
+        @i -to ~ -get name
+        @njl -add ~
+    ]$
+    
+    FOR @i in @@jobnamelist $[
+        LOCAL @dpoint
+        LOCAL @tf
+        LOCAL @val
+        dpoint -to @dpoint -dkey OS|AS400|Jobname
+        calljava -to @tf -- @njl -method contains -primarg @i
+
+        IF @tf THEN $[ num -to @val 1 ]$ ELSE $[ num -to @val 0 ]$
+        @dpoint -to @dpoint -value @val -type int -compare info -alertlevel 0
+        @dpoint -to @dpoint -addkey @i
+        @dpoint -to @dpoint -addkey Status
+        IF @tf THEN $[
+            @dpoint -msg ${ Job status matched the expected value }$ -compare info
+        ]$ ELSE $[
+            LOCAL @body
+            put -to @body ${ Job }$
+            string -to @body -cat @body @i
+            string -to @body -bl @body
+            string -to @body -cat @body ${ status was }$
+            string -to @body -cat @body @val
+            string -to @body -bl @body
+            string -to @body -cat @body ${ instead of the expected }$
+            string -to @body -cat @body 1
+            string -to @body -cat @body ${ ! }$
+            @dpoint -msg @body -compare crit
+        ]$
+    ]$
+    bye
+]$
