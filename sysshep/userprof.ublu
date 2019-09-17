@@ -2,20 +2,38 @@
 
 \\ ${ Gets all messages waiting for a particular username, and prints them }$
 \\ ${ qusername may be null, which checks for QSYSOPR instead }$
+\\ ${ If the qusername ends with .msgq (case-insensitive), the input is simply returned }$
 FUNC sysshep.queue_from_username ( as400 qusername ) $[
-    LOCAL @usertest
-    test -to @usertest -null @@qusername
-
+    \\ ${ First check if quesername is anything ending with .msgq }$
+    LOCAL @endswithext
+    LOCAL @usernull
     LOCAL @qusername
 
-    IF @usertest THEN $[
+    put -to @qusername @@qusername
+
+    \\ ${ This no-op is necessary, otherwise the test will throw a NullPointerException }$
+    put -to @usernull nothing
+    test -to @usernull -null @qusername
+
+    IF @usernull THEN $[
+        tuple -false @endswithext
         put -to @qusername QSYSOPR
     ]$ ELSE $[
-        put -to @qusername @@qusername
+        LOCAL @upqusername
+        LOCAL @ext
+        string -to @upqusername -upcase @qusername
+        put -to @ext .MSGQ
+        calljava -- @upqusername -to @endswithext -method endsWith -arg @ext
     ]$
 
-    LOCAL @queue
-    user -as400 @as400 -to @queue -userprofile @qusername -query msgq
+    IF @endswithext THEN $[
+        \\ ${ If the input already ends with .msgq, just return that as a path }$
+        put -to ~ @qusername
+    ]$ ELSE $[
+        \\ ${ Otherwise, find the path for the given user }$
+        LOCAL @queue
+        user -as400 @as400 -to @queue -userprofile @qusername -query msgq
 
-    put -to ~ @queue
+        put -to ~ @queue
+    ]$
 ]$
