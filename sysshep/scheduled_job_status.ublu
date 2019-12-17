@@ -64,7 +64,7 @@ FUNC sysshep.scheduled_job_status ( propertiesfile jobname whitelist blacklist )
 
         test -to ~ -nnull @@blacklist
         IF ~ THEN $[
-            calljava -to ~ -- @status -method -matches -arg @@blacklist
+            calljava -to ~ -- @status -method matches -arg @@blacklist
             IF ~ THEN $[
                 @dp -to NULL: -compare crit
                 @dp -to NULL: -value 2
