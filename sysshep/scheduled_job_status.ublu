@@ -1,0 +1,102 @@
+include sysshep/kill.ublu
+
+\\ ${ Check a scheduled job's status against a whitelist and/or a blacklist regex. }$
+\\ ${ If the job doesn't exist, an alarm is raised. }$
+\\ ${ If the whitelist regex is not empty and the status does not match it, an alarm is raised. }$
+\\ ${ If the blacklist regex is not empty and the status matches it, an alarm is raised. }$
+\\ ${ Otherwise, an info status datapoint is returned. }$
+FUNC sysshep.scheduled_job_status ( propertiesfile jobname whitelist blacklist ) $[
+    \\ ${ Give a 10 minute timer before this script kills itself }$
+    sysshep.killafter ( 600000 App|Ublu|Script|SCHEDULED_JOB_STATUS|Status )
+    props -read @@propertiesfile
+
+    LOCAL @username
+    LOCAL @host
+    LOCAL @password
+    props -to @username -get sysshep.username
+    props -to @host -get sysshep.host
+    props -to @password -get sysshep.password
+
+    LOCAL @query
+    put -to @query ${ select STATUS from QSYS2.SCHEDULED_JOB_INFO where SCHEDULED_JOB_NAME = }$
+    string -to @query -cat @query '
+    string -to @query -cat @query @@jobname
+    string -to @query -cat @query '
+
+    \\ ${ Start setting up datapoint }$
+    LOCAL @dp
+    dpoint -to @dp -dkey OS400|QSYS2|SCHEDULED_JOB_INFO|
+    @dp -to NULL: -addkey @@jobname
+    @dp -to NULL: -addkey Status
+
+    LOCAL @db
+    LOCAL @results
+    db -to @db -dbtype as400 -connect @host QSYS2 @username @password
+
+    @db -to @results -query @query
+
+    \\ ${ Make sure we found a scheduled job }$
+    @results -to ~ -abs 1
+    IF ~ THEN $[
+        LOCAL @status
+        @results -to @status -lget STATUS
+
+        test -to ~ -nnull @@whitelist
+        IF ~ THEN $[
+            calljava -to ~ -- @status -matches -arg @@whitelist
+            IF -! ~ THEN $[
+                @dp -to NULL: -compare crit
+                @dp -to NULL: -value 2
+                @dp -to NULL: -alertlevel 2
+                LOCAL @msg
+                put -to @msg Job
+                string -to @msg -bl @msg
+                string -to @msg -cat @msg @@jobname
+                string -to @msg -bl @msg
+                string -to @msg -cat @msg ${ status }$
+                string -to @msg -cat @msg @status
+                string -to @msg -bl @msg
+                string -to @msg -cat @msg ${ did not match required regex }$
+                string -to @msg -cat @msg @@whitelist
+                @dp -to NULL: -msg @msg
+            ]$
+        ]$
+
+        test -to ~ -nnull @@blacklist
+        IF ~ THEN $[
+            calljava -to ~ -- @status -matches -arg @@blacklist
+            IF ~ THEN $[
+                @dp -to NULL: -compare crit
+                @dp -to NULL: -value 2
+                @dp -to NULL: -alertlevel 2
+                LOCAL @msg
+                put -to @msg Job
+                string -to @msg -bl @msg
+                string -to @msg -cat @msg @@jobname
+                string -to @msg -bl @msg
+                string -to @msg -cat @msg ${ status }$
+                string -to @msg -cat @msg @status
+                string -to @msg -bl @msg
+                string -to @msg -cat @msg ${ matched critical regex }$
+                string -to @msg -cat @msg @@blacklist
+                @dp -to NULL: -msg @msg
+            ]$
+        ]$
+
+        put @dp
+    ]$ ELSE $[
+        \\ ${ The job doesn't exist, raise an alarm }$
+        @dp -to NULL: -compare crit
+        @dp -to NULL: -value 2
+        @dp -to NULL: -alertlevel 2
+        LOCAL @msg
+        put -to @msg Job
+        string -to @msg -bl @msg
+        string -to @msg -cat @msg @@jobname
+        string -to @msg -bl @msg
+        string -to @msg -cat @msg ${ not found in SCHEDULED_JOB_INFO }$
+        @dp -msg @msg
+    ]$
+    db -dbconnected @db -disconnect
+    bye
+]$
