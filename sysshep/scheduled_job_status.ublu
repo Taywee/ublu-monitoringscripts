@@ -25,7 +25,7 @@ FUNC sysshep.scheduled_job_status ( propertiesfile jobname whitelist blacklist )
 
     \\ ${ Start setting up datapoint }$
     LOCAL @dp
-    dpoint -to @dp -dkey OS400|QSYS2|SCHEDULED_JOB_INFO|
+    dpoint -to @dp -dkey OS400|QSYS2|SCHEDULED_JOB_INFO
     @dp -to NULL: -addkey @@jobname
     @dp -to NULL: -addkey Status
 
