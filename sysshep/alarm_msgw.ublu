@@ -2,7 +2,7 @@ include sysshep/userprof.ublu
 include sysshep/kill.ublu
 
 \\ ${ Gets all messages waiting for a particular username, and prints them }$
-FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
+FUNC sysshep.alarm_msgw ( propertiesfile qusername ignorepattern ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
     sysshep.killafter ( 600000 App|Ublu|Script|MSGW|Status )
     props -read @@propertiesfile
@@ -51,7 +51,20 @@ FUNC sysshep.alarm_msgw ( propertiesfile qusername ) $[
     FOR @message in @messages $[
         LOCAL @body
         @message -to @body -message
-        @dpoint -msg @body 
+
+        LOCAL @ignore
+
+        test -to ~ -null @@ignorepattern
+        IF ~ THEN $[
+            \\ ${ Ignore nothing on null }$
+            tuple -false @ignore
+        ]$ ELSE $[
+            calljava -to @ignore -- @body -method matches -arg @@ignorepattern
+        ]$
+
+        IF -! @ignore THEN $[
+            @dpoint -msg @body 
+        ]$
     ]$
     bye
 ]$

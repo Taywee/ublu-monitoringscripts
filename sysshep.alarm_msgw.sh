@@ -11,6 +11,7 @@ echo "	where"
 echo "	-h		display this help message and exit 0"
 echo "	-p PROPERTIES	credentials properties file  (required option)"
 echo "	-q QUSERNAME	username to be monitored (defaults to QSYSOPR) "
+echo "	-I IGNOREPATTERN	Pattern specifying which messages to ignore. This is not a search, it must match exactly, so you will likely need to use .+ or .* at the beginning and end."
 echo "---"
 echo "If the keyword 'silent' appears ahead of all options, then included files will not echo and prompting is suppressed."
 echo "Exit code is the result of execution, or 0 for -h or 2 if there is an error in processing options"
@@ -31,6 +32,7 @@ do
 	case "$the_opt" in
 		p)	PROPERTIES="$OPTARG";;
 		q)	QUSERNAME="$OPTARG";;
+		I)	IGNOREPATTERN="$OPTARG";;
 		h)	usage;exit 0;;
 		[?])	usage;exit 2;;
 
@@ -57,10 +59,14 @@ if [ "${QUSERNAME}" != "" ]
 then
 	gensh_runtime_opts="${gensh_runtime_opts}string -to @qusername -trim \${ ${QUSERNAME} }$ "
 fi
+if [ "${IGNOREPATTERN}" != "" ]
+then
+	gensh_runtime_opts="${gensh_runtime_opts}string -to @ignorepattern -trim \${ ${IGNOREPATTERN} }$ "
+fi
 
 SCRIPTDIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
 set -o noglob
 
 # Invocation
-java -Dublu.includepath="$SCRIPTDIR" -jar /opt/ublu/ublu.jar ${gensh_runtime_opts} include ${SILENT}sysshep/alarm_msgw.ublu sysshep.alarm_msgw \( @properties @qusername \) 
+java -Dublu.includepath="$SCRIPTDIR" -jar /opt/ublu/ublu.jar ${gensh_runtime_opts} include ${SILENT}sysshep/alarm_msgw.ublu sysshep.alarm_msgw \( @properties @qusername @ignorepattern \) 
 exit $?
