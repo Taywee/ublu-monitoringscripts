@@ -27,7 +27,7 @@ else
 fi
 
 # Process options
-while getopts p:q:h the_opt
+while getopts p:q:I:h the_opt
 do
 	case "$the_opt" in
 		p)	PROPERTIES="$OPTARG";;
