@@ -2,7 +2,7 @@ include sysshep/userprof.ublu
 include sysshep/kill.ublu
 
 \\ ${ Gets all messages waiting for a particular username, and prints them }$
-FUNC sysshep.alarm_msgw ( propertiesfile qusername ignorepattern ) $[
+FUNC sysshep.alarm_msgw ( propertiesfile qusername ignorepattern matchpattern extrakey ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
     sysshep.killafter ( 600000 App|Ublu|Script|MSGW|Status )
     props -read @@propertiesfile
@@ -48,23 +48,38 @@ FUNC sysshep.alarm_msgw ( propertiesfile qusername ignorepattern ) $[
     dpoint -to @dpoint -dkey OS|AS400|MESSAGES -value 1 -type int -compare crit -alertlevel 0
     @dpoint -to @dpoint -addkey @qusername
 
+    test -to ~ -nnull @@extrakey
+    IF ~ THEN $[
+        @dpoint -to @dpoint -addkey @@extrakey
+    ]$
+
     FOR @message in @messages $[
         LOCAL @body
         @message -to @body -message
 
-        LOCAL @ignore
+        LOCAL @match
+        tuple -true @match
 
-        test -to ~ -null @@ignorepattern
+        \\ ${ Test the match pattern if it is present }$
+        test -to ~ -nnull @@matchpattern
         IF ~ THEN $[
-            \\ ${ Ignore nothing on null }$
-            tuple -false @ignore
-        ]$ ELSE $[
-            calljava -to @ignore -- @body -method matches -arg @@ignorepattern
+            calljava -to @match -- @body -method matches -arg @@matchpattern
         ]$
 
-        IF -! @ignore THEN $[
-            @dpoint -msg @body 
+        IF @match THEN $[
+            LOCAL @ignore
+            tuple -false @ignore
+
+            \\ ${ Also check the ignore if it is present }$
+            test -to ~ -nnull @@ignorepattern
+            IF ~ THEN $[
+                calljava -to @ignore -- @body -method matches -arg @@ignorepattern
+            ]$
+            IF -! @ignore THEN $[
+                @dpoint -msg @body 
+            ]$
         ]$
     ]$
+
     bye
 ]$

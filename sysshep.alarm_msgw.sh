@@ -10,7 +10,9 @@ echo "Usage: $0 [silent] -h -p PROPERTIES -q QUSERNAME "
 echo "	where"
 echo "	-h		display this help message and exit 0"
 echo "	-p PROPERTIES	credentials properties file  (required option)"
-echo "	-q QUSERNAME	username to be monitored (defaults to QSYSOPR) "
+echo "	-q QUSERNAME	username to be monitored (defaults to QSYSOPR)"
+echo "	-d DKEY	An extra dkey field to add"
+echo "	-M MATCHPATTERN	Pattern specifying which messages to match. This is not a search, it must match exactly, so you will likely need to use .+ or .* at the beginning and end."
 echo "	-I IGNOREPATTERN	Pattern specifying which messages to ignore. This is not a search, it must match exactly, so you will likely need to use .+ or .* at the beginning and end."
 echo "---"
 echo "If the keyword 'silent' appears ahead of all options, then included files will not echo and prompting is suppressed."
@@ -32,7 +34,9 @@ do
 	case "$the_opt" in
 		p)	PROPERTIES="$OPTARG";;
 		q)	QUSERNAME="$OPTARG";;
+		d)	DKEY="$OPTARG";;
 		I)	IGNOREPATTERN="$OPTARG";;
+		M)	MATCHPATTERN="$OPTARG";;
 		h)	usage;exit 0;;
 		[?])	usage;exit 2;;
 
@@ -59,14 +63,23 @@ if [ "${QUSERNAME}" != "" ]
 then
 	gensh_runtime_opts="${gensh_runtime_opts}string -to @qusername -trim \${ ${QUSERNAME} }$ "
 fi
+if [ "${DKEY}" != "" ]
+then
+	gensh_runtime_opts="${gensh_runtime_opts}string -to @extrakey -trim \${ ${DKEY} }$ "
+fi
 if [ "${IGNOREPATTERN}" != "" ]
 then
 	gensh_runtime_opts="${gensh_runtime_opts}string -to @ignorepattern -trim \${ ${IGNOREPATTERN} }$ "
+fi
+
+if [ "${MATCHPATTERN}" != "" ]
+then
+	gensh_runtime_opts="${gensh_runtime_opts}string -to @matchpattern -trim \${ ${MATCHPATTERN} }$ "
 fi
 
 SCRIPTDIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
 set -o noglob
 
 # Invocation
-java -Dublu.includepath="$SCRIPTDIR" -jar /opt/ublu/ublu.jar ${gensh_runtime_opts} include ${SILENT}sysshep/alarm_msgw.ublu sysshep.alarm_msgw \( @properties @qusername @ignorepattern \) 
+java -Dublu.includepath="$SCRIPTDIR" -jar /opt/ublu/ublu.jar ${gensh_runtime_opts} include ${SILENT}sysshep/alarm_msgw.ublu sysshep.alarm_msgw \( @properties @qusername @ignorepattern @matchpattern @extrakey \) 
 exit $?
