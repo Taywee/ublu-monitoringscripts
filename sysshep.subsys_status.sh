@@ -12,7 +12,7 @@ echo "	-h		display this help message and exit 0"
 echo "	-X xOpt		pass a -X option to the JVM (can be used many times)"
 echo "	-D some.property=\"some value\"	pass a property to the JVM (can be used many times)"
 echo "	-p PROPERTIES	credentials properties file  (required option)"
-echo "	-s SUBSYSPATH	path to a subsystem, like /QSYS.LIB/QINTER.SBSD  (required option)"
+echo "	-s SUBSYSPATH	path to a subsystem, like /QSYS.LIB/QINTER.SBSD  (required option).  Can be specified multiple times."
 echo "	-w WANTEDSTATUS	The desired status as an exact string, including the asterisk, like *ACTIVE  (required option)"
 echo "---"
 echo "If the keyword 'silent' appears ahead of all options, then included files will not echo and prompting is suppressed."
@@ -34,7 +34,7 @@ while getopts p:s:w:D:X:h the_opt
 do
 	case "$the_opt" in
 		p)	PROPERTIES="$OPTARG";;
-		s)	SUBSYSPATH="$OPTARG";;
+		s)	SUBSYSPATH="${SUBSYSPATH:+$SUBSYSPATH }$OPTARG";;
 		w)	WANTEDSTATUS="$OPTARG";;
 		h)	usage;exit 0;;
 		D)	JVMPROPS="${JVMPROPS} -D${OPTARG}";;

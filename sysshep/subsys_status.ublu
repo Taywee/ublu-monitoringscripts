@@ -25,7 +25,7 @@ FUNC sysshep.subsys_status ( propertiesfile subsyspath wantedstatus ) $[
 
         LOCAL @test
         @as400 -to @test -validate
-        IF @test THEN $[ \\ ${ Do nothing }$ ]$ ELSE $[ THROW ${ Login validation failure }$ ]$
+        IF -! @test THEN $[ THROW ${ Login validation failure }$ ]$
 
         @logindpoint -msg ${ could log in just fine }$ -compare info
     ]$ CATCH $[
@@ -36,34 +36,42 @@ FUNC sysshep.subsys_status ( propertiesfile subsyspath wantedstatus ) $[
         bye
     ]$
 
-    subsys -as400 @as400 -to @subsys -new -subsyspath @@subsyspath
-    @subsys -refresh
+    LOCAL @subsystems
 
-    LOCAL @status
-    @subsys -to @status -query status
+    \\ ${ Turn the subsyspath from a space-separated string into a list }$
+    list -to @subsystems -new -src @@subsyspath
 
-    LOCAL @test
-    string -to @test -eq @status @@wantedstatus
+    FOR @path IN @subsystems $[
+        LOCAL @subsys
+        subsys -as400 @as400 -to @subsys -new -subsyspath @path
+        @subsys -refresh
 
-    LOCAL @dpoint
-    dpoint -to @dpoint -dkey OS|AS400|Subsystem -value 1 -type int -compare info -alertlevel 0
-    @dpoint -to @dpoint -addkey @@subsyspath
-    @dpoint -to @dpoint -addkey Status
+        LOCAL @status
+        @subsys -to @status -query status
 
-    IF @test THEN $[
-        @dpoint -msg ${ Subsystem status matched the expected value }$ -compare info
-    ]$ ELSE $[
-        LOCAL @body
-        put -to @body ${ Subsystem }$
-        string -to @body -cat @body @@subsyspath
-        string -to @body -bl @body
-        string -to @body -cat @body ${ status was }$
-        string -to @body -cat @body @status
-        string -to @body -bl @body
-        string -to @body -cat @body ${ instead of the expected }$
-        string -to @body -cat @body @@wantedstatus
-        string -to @body -cat @body ${ ! }$
-        @dpoint -msg @body -compare crit
+        LOCAL @test
+        string -to @test -eq @status @@wantedstatus
+
+        LOCAL @dpoint
+        dpoint -to @dpoint -dkey OS|AS400|Subsystem -value 1 -type int -compare info -alertlevel 0
+        @dpoint -to @dpoint -addkey @path
+        @dpoint -to @dpoint -addkey Status
+
+        IF @test THEN $[
+            @dpoint -msg ${ Subsystem status matched the expected value }$ -compare info
+        ]$ ELSE $[
+            LOCAL @body
+            put -to @body ${ Subsystem }$
+            string -to @body -cat @body @path
+            string -to @body -bl @body
+            string -to @body -cat @body ${ status was }$
+            string -to @body -cat @body @status
+            string -to @body -bl @body
+            string -to @body -cat @body ${ instead of the expected }$
+            string -to @body -cat @body @@wantedstatus
+            string -to @body -cat @body ${ ! }$
+            @dpoint -msg @body -compare crit
+        ]$
     ]$
     bye
 ]$
