@@ -2,7 +2,7 @@ include sysshep/kill.ublu
 include /opt/ublu/extensions/sysshep/sysshep.qsys2.sysdiskstat.ublu
 
 \\ ${ Runs some basic monitoring, working around diskstats issues }$
-FUNC sysshep.nodiskstat ( properties ) $[
+FUNC sysshep.nodiskstat ( properties percentthreshold ) $[
     \\ ${ Give a 10 minute timer before this script kills itself }$
     sysshep.killafter ( 600000 App|Ublu|Script|NODISKSTATMONITORING|Status )
     props -read @@properties
@@ -21,9 +21,8 @@ FUNC sysshep.nodiskstat ( properties ) $[
 
     LOCAL @db
     db -to @db -dbtype as400 -connect @host QSYS2 @username @password
-    LOCAL @stats
-    sysshep.qsys2.sysdiskstat ( @db @stats )
-    put @stats
+    sysshep.qsys2.sysdiskstat ( @db @@percentthreshold )
+    put ~
     db -dbconnected @db -disconnect
     bye
 ]$

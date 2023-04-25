@@ -14,12 +14,17 @@
 \\ ${   db -to @myDb -dbtype as400 -connect mysys QSYS2 myid mypasswd }$
 \\ ${   sysshep.qsys2.sysdiskstat ( @myDb ) }$
 \\ ${   put ~ }$
-FUNC sysshep.qsys2.sysdiskstat ( qsys2db ) $[
+FUNC sysshep.qsys2.sysdiskstat ( qsys2db percentthreshold ) $[
    LOCAL @myRs
    LOCAL @dpCap LOCAL @dpCapU  LOCAL @dpCapM  LOCAL @dpCapP
    LOCAL @dpMir LOCAL @dpMirS
    LOCAL @valid  LOCAL @tmp
    LOCAL @output
+   LOCAL @threshold
+   test -to ~ -nnull @@percenttthreshold
+    IF ~ $[
+        num -to @threshold -float @@threshold
+    ]$
    string -to @output -new
    @@qsys2db -to @myRs -query ${ SELECT * FROM SYSDISKSTAT }$   
    @myRs -to @valid -abs 1   
@@ -60,7 +65,13 @@ FUNC sysshep.qsys2.sysdiskstat ( qsys2db ) $[
        
        @dpCapP -to NULL: -addkey PERCENT_USED
        @myRs -to ~ -lget PERCENT_USED
-       @dpCapP -to NULL: -value ~ -type float
+
+       test -to ~ -nnull @threshold
+        IF ~ THEN $[
+           @dpCapP -to NULL: -value ~ -type float -compare gt -alertlevel @threshold
+        ]$ ELSE $[
+           @dpCapP -to NULL: -value ~ -type float
+        ]$
        
        \\ ${ LOGICAL_MIRRORED_PAIR_STATUS }$  
        @dpMir -to NULL: -addkey LOGICAL_MIRRORED_PAIR_STATUS
