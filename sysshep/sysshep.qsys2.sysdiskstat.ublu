@@ -21,7 +21,7 @@ FUNC sysshep.qsys2.sysdiskstat ( qsys2db percentthreshold ) $[
    LOCAL @valid  LOCAL @tmp
    LOCAL @output
    LOCAL @threshold
-   test -to ~ -nnull @@percenttthreshold
+   test -to ~ -nnull @@percentthreshold
     IF ~ $[
         num -to @threshold -float @@threshold
     ]$
